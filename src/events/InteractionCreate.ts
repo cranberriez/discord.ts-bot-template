@@ -1,6 +1,7 @@
 import type { Interaction } from "discord.js";
 import { Events } from "discord.js";
 import type { Event } from "../types/event";
+import logger from "../utils/logger";
 
 export default {
     name: Events.InteractionCreate,
@@ -10,14 +11,16 @@ export default {
         const command = interaction.client.commands.get(interaction.commandName);
 
         if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
+            logger.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
+
+        logger.log(`/${interaction.commandName} used by ${interaction.user.tag} (${interaction.user.id}) in ${interaction.guildId ?? "DM"}`);
 
         try {
             await command.execute(interaction);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({
                     content: "There was an error while executing this command!",
