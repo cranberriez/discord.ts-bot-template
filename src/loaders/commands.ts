@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Collection } from "discord.js";
 import type { Command } from "../types/command";
+import logger from "../utils/logger";
 
 function getCommandFiles(dir: string): string[] {
     return fs
@@ -24,7 +25,7 @@ export async function loadCommands(): Promise<Collection<string, Command>> {
         if ("data" in command && "execute" in command) {
             commands.set(command.data.name, command);
         } else {
-            console.warn(`[WARNING] ${file} is missing "data" or "execute"`);
+            logger.warn(`[WARNING] ${file} is missing "data" or "execute"`);
         }
     }
 

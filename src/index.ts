@@ -1,6 +1,8 @@
-import { Client, Events, GatewayIntentBits, Collection } from "discord.js";
+import { Client, GatewayIntentBits, Collection } from "discord.js";
 import type { Command } from "./types/command";
 import { loadCommands } from "./loaders/commands";
+import { loadEvents } from "./loaders/events";
+import { registerCommands } from "./loaders/register";
 import config from "../config.json";
 
 declare module "discord.js" {
@@ -11,10 +13,8 @@ declare module "discord.js" {
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.once(Events.ClientReady, (readyClient) => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
 client.commands = await loadCommands();
+await loadEvents(client);
+await registerCommands(client);
 
 client.login(config.token);
