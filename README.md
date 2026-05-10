@@ -19,8 +19,8 @@ A TypeScript Discord bot template using Bun, discord.js, and an event-driven arc
 
 2. Edit `config.jsonc` and replace the parameters:
     - `token`: Your Discord bot token
-    - `clientId`: Your bot's application ID
-    - `guildId`: Your test server ID (for command deployment)
+    - `appId`: Your bot's application ID
+    - `guilds`: Guild-specific command routing (see [Commands](#commands) below)
 
 ### Running
 
@@ -68,3 +68,64 @@ bun run type-check
 ## Development
 
 The bot uses a modular command and event system. New commands are automatically loaded from the `src/commands/` directory.
+
+## Commands
+
+### Adding a command
+
+Create a `.ts` file anywhere under `src/commands/`. It will be picked up automatically on next startup.
+
+**Simple command:**
+
+```ts
+// src/commands/utility/ping.ts
+import { SlashCommandBuilder } from "discord.js";
+import type { Command } from "../../types/command";
+
+export default {
+    data: new SlashCommandBuilder()
+        .setName("ping")
+        .setDescription("Replies with Pong!"),
+    async execute(interaction) {
+        await interaction.reply("Pong!");
+    },
+} satisfies Command;
+```
+
+**Command with subcommands:**
+
+```ts
+// src/commands/utility/calendar.ts
+import { SlashCommandBuilder } from "discord.js";
+import type { Command } from "../../types/command";
+
+export default {
+    data: new SlashCommandBuilder()
+        .setName("calendar")
+        .setDescription("Calendar commands")
+        .addSubcommand(sub => sub.setName("add").setDescription("Add an event"))
+        .addSubcommand(sub => sub.setName("list").setDescription("List events")),
+    subcommands: {
+        add: async (interaction) => { await interaction.reply("Added!"); },
+        list: async (interaction) => { await interaction.reply("Here are your events..."); },
+    },
+} satisfies Command;
+```
+
+A command uses either `execute` or `subcommands` — not both.
+
+### Command registration
+
+By default, every command is registered as a **global** Discord command (available in all servers and DMs). To restrict a command to specific guilds, list it under the relevant guild ID in `config.jsonc`:
+
+```jsonc
+{
+    "guilds": {
+        "123456789012345678": ["calendar", "admin"]
+    }
+}
+```
+
+Any command not listed under any guild remains global. A command can appear under multiple guild IDs to register it in each of those servers without making it global.
+
+> **Note:** Global commands can take up to an hour to propagate after registration. Guild commands are instant.

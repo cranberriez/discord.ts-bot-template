@@ -1,27 +1,31 @@
 import { REST, Routes } from "discord.js";
 import type { Client } from "discord.js";
-import config from "../../config.jsonc";
+import config from "../config";
+import logger from "../utils/logger";
 
 export async function registerCommands(client: Client): Promise<void> {
     const rest = new REST().setToken(config.token);
 
-    const globalCommands: any[] = [];
+    // Build a set of every command name that is explicitly assigned to a guild.
+    const guildAssigned = new Set(Object.values(config.guilds).flat());
+
+    // Everything not assigned to a guild is registered globally.
+    const globalCommands = [...client.commands.values()]
+        .filter((cmd) => !guildAssigned.has(cmd.data.name))
+        .map((cmd) => cmd.data.toJSON());
+
+    // Per-guild: resolve each name to a command, warn on unknowns.
     const guildCommands = new Map<string, any[]>();
-
-    for (const command of client.commands.values()) {
-        const json = command.data.toJSON();
-
-        if (command.global) {
-            globalCommands.push(json);
-        } else if (command.servers?.length) {
-            for (const serverId of command.servers) {
-                if (!guildCommands.has(serverId)) guildCommands.set(serverId, []);
-                guildCommands.get(serverId)!.push(json);
+    for (const [guildId, names] of Object.entries(config.guilds)) {
+        const cmds = names.flatMap((name) => {
+            const cmd = client.commands.get(name);
+            if (!cmd) {
+                logger.warn(`Guild ${guildId} lists unknown command "${name}" — skipping`);
+                return [];
             }
-        } else {
-            if (!guildCommands.has(config.guildId)) guildCommands.set(config.guildId, []);
-            guildCommands.get(config.guildId)!.push(json);
-        }
+            return [cmd.data.toJSON()];
+        });
+        if (cmds.length) guildCommands.set(guildId, cmds);
     }
 
     const tasks: Promise<void>[] = [];
@@ -31,17 +35,17 @@ export async function registerCommands(client: Client): Promise<void> {
             rest
                 .put(Routes.applicationCommands(config.appId), { body: globalCommands })
                 .then((data: any) => {
-                    console.log(`Registered ${data.length} global command(s).`);
+                    logger.log(`Registered ${data.length} global command(s).`);
                 }),
         );
     }
 
-    for (const [guildId, commands] of guildCommands) {
+    for (const [guildId, cmds] of guildCommands) {
         tasks.push(
             rest
-                .put(Routes.applicationGuildCommands(config.appId, guildId), { body: commands })
+                .put(Routes.applicationGuildCommands(config.appId, guildId), { body: cmds })
                 .then((data: any) => {
-                    console.log(`Registered ${data.length} command(s) to guild ${guildId}.`);
+                    logger.log(`Registered ${data.length} command(s) to guild ${guildId}.`);
                 }),
         );
     }
@@ -49,7 +53,7 @@ export async function registerCommands(client: Client): Promise<void> {
     try {
         await Promise.all(tasks);
     } catch (error) {
-        console.error("Failed to register commands:", error);
+        logger.error("Failed to register commands:");
         throw error;
     }
 }

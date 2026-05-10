@@ -15,10 +15,6 @@ export default {
             return;
         }
 
-        if (command.servers?.length && (!interaction.guildId || !command.servers.includes(interaction.guildId))) {
-            return;
-        }
-
         logger.log(`/${interaction.commandName} used by ${interaction.user.tag} (${interaction.user.id}) in ${interaction.guildId ?? "DM"}`);
 
         try {

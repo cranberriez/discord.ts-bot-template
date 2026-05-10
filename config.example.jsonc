@@ -1,5 +1,9 @@
 {
     "token": "YOUR-DISCORD-BOT-TOKEN",
     "appId": "YOUR-DISCORD-APP-ID",
-    "guildId": "YOUR-DISCORD-GUILD-ID",
+    // Commands not listed under any guild are registered globally.
+    // Add guild IDs here to restrict specific commands to those guilds.
+    "guilds": {
+        // "YOUR-GUILD-ID": ["command-name", "other-command"]
+    },
 }

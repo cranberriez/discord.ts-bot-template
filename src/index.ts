@@ -3,7 +3,7 @@ import type { Command } from "./types/command";
 import { loadCommands } from "./loaders/commands";
 import { loadEvents } from "./loaders/events";
 import { registerCommands } from "./loaders/register";
-import config from "../config.jsonc";
+import config from "./config";
 
 declare module "discord.js" {
     interface Client {
