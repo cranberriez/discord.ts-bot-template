@@ -1,0 +1,27 @@
+{
+    "name": "calendar-bot",
+    "version": "1.0.0",
+    "description": "Discord event management bot using Bun, TypeScript, and discord.js",
+    "license": "ISC",
+    "author": "Jacob",
+    "type": "module",
+    "main": "src/index.ts",
+    "scripts": {
+        "start": "bun run src/index.ts",
+        "deploy": "bun run scripts/deploy-commands.ts",
+        "lint": "eslint .",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "discord.js": "^14.26.4"
+    },
+    "devDependencies": {
+        "@discordjs/rest": "^2.5.0",
+        "@eslint/js": "^9.0.0",
+        "@types/bun": "^1.1.0",
+        "@typescript-eslint/eslint-plugin": "^7.0.0",
+        "@typescript-eslint/parser": "^7.0.0",
+        "eslint": "^9.0.0",
+        "typescript": "^5.4.0"
+    }
+}
