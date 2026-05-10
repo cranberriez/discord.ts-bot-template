@@ -1,6 +1,6 @@
 import { REST, Routes } from "discord.js";
 import type { Client } from "discord.js";
-import config from "../../config.json";
+import config from "../../config.jsonc";
 
 export async function registerCommands(client: Client): Promise<void> {
     const commands = client.commands.map((command) => command.data.toJSON());
