@@ -22,7 +22,7 @@ export async function loadCommands(): Promise<Collection<string, Command>> {
         const mod = await import(file);
         const command: Command = mod.default ?? mod;
 
-        if ("data" in command && "execute" in command) {
+        if ("data" in command && ("execute" in command || "subcommands" in command)) {
             commands.set(command.data.name, command);
         } else {
             logger.warn(`[WARNING] ${file} is missing "data" or "execute"`);

@@ -15,10 +15,24 @@ export default {
             return;
         }
 
+        if (command.servers?.length && (!interaction.guildId || !command.servers.includes(interaction.guildId))) {
+            return;
+        }
+
         logger.log(`/${interaction.commandName} used by ${interaction.user.tag} (${interaction.user.id}) in ${interaction.guildId ?? "DM"}`);
 
         try {
-            await command.execute(interaction);
+            if (command.subcommands) {
+                const sub = interaction.options.getSubcommand(false);
+                const handler = sub ? command.subcommands[sub] : undefined;
+                if (!handler) {
+                    logger.error(`No handler for subcommand "${sub}" in /${interaction.commandName}`);
+                    return;
+                }
+                await handler(interaction);
+            } else {
+                await command.execute(interaction);
+            }
         } catch (error) {
             logger.error(error);
             if (interaction.replied || interaction.deferred) {
